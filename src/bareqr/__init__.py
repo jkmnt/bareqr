@@ -1,12 +1,15 @@
+"""Bare headless QR code generator"""
+
 from __future__ import annotations
 
+__version__ = "0.1.0"
+
+
 from bisect import bisect_left
-from typing import Final, Sequence, TextIO, cast
+from typing import Final, Sequence, cast
 
 from . import exceptions, util
 from .base import VERSIONS, Correction
-
-BlanksCache = dict[int, "Matrix"]
 
 
 def _choose_version(*data_list: util.QRData, start_version: int, limits_by_version: Sequence[int]) -> int:
@@ -62,20 +65,20 @@ def _choose_mask_pattern(data_bytes: bytes, version: int, cache: BlanksCache, co
 
 
 class Matrix:
-    __slots__ = ("version", "order", "rows")
+    __slots__ = ("version", "order", "_rows")
 
     def __init__(self, version: int, data: list[list[int | None]] | None = None):
         order = version * 4 + 17
         self.version: Final = version
         self.order: Final = order
-        self.rows: Final[list[list[int | None]]]
+        self._rows: Final[list[list[int | None]]]
         if data:
-            self.rows = data
+            self._rows = data
         else:
-            self.rows = [[None] * order for _ in range(order)]
+            self._rows = [[None] * order for _ in range(order)]
 
     def copy(self):
-        return Matrix(self.version, [list(row) for row in self.rows])
+        return Matrix(self.version, [list(row) for row in self._rows])
 
     def _put_probe_pattern(self, row: int, col: int):
         for r in range(-1, 8):
@@ -86,7 +89,7 @@ class Matrix:
                 if col + c <= -1 or self.order <= col + c:
                     continue
 
-                self.rows[row + r][col + c] = int(
+                self._rows[row + r][col + c] = int(
                     (0 <= r <= 6 and c in (0, 6)) or (0 <= c <= 6 and r in (0, 6)) or (2 <= r <= 4 and 2 <= c <= 4)
                 )
 
@@ -100,22 +103,24 @@ class Matrix:
 
         for row in pos:
             for col in pos:
-                if self.rows[row][col] is not None:
+                if self._rows[row][col] is not None:
                     continue
                 for r in range(-2, 3):
                     for c in range(-2, 3):
-                        self.rows[row + r][col + c] = int(r == -2 or r == 2 or c == -2 or c == 2 or (r == 0 and c == 0))
+                        self._rows[row + r][col + c] = int(
+                            r == -2 or r == 2 or c == -2 or c == 2 or (r == 0 and c == 0)
+                        )
 
     def _put_timing_pattern(self):
         for r in range(8, self.order - 8):
-            if self.rows[r][6] is not None:
+            if self._rows[r][6] is not None:
                 continue
-            self.rows[r][6] = ~r & 1
+            self._rows[r][6] = ~r & 1
 
         for c in range(8, self.order - 8):
-            if self.rows[6][c] is not None:
+            if self._rows[6][c] is not None:
                 continue
-            self.rows[6][c] = ~c & 1
+            self._rows[6][c] = ~c & 1
 
     def _put_type_info(self, *, test: bool, pattern: int, correction: Correction):
         data = (correction << 3) | pattern
@@ -126,25 +131,25 @@ class Matrix:
             mod = 0 if test else ((bits >> i) & 1)
 
             if i < 6:
-                self.rows[i][8] = mod
+                self._rows[i][8] = mod
             elif i < 8:
-                self.rows[i + 1][8] = mod
+                self._rows[i + 1][8] = mod
             else:
-                self.rows[self.order - 15 + i][8] = mod
+                self._rows[self.order - 15 + i][8] = mod
 
         # horizontal
         for i in range(15):
             mod = ((bits >> i) & 1) if test else 0
 
             if i < 8:
-                self.rows[8][self.order - i - 1] = mod
+                self._rows[8][self.order - i - 1] = mod
             elif i < 9:
-                self.rows[8][15 - i - 1 + 1] = mod
+                self._rows[8][15 - i - 1 + 1] = mod
             else:
-                self.rows[8][15 - i - 1] = mod
+                self._rows[8][15 - i - 1] = mod
 
         # fixed module
-        self.rows[self.order - 8][8] = 0 if test else 1
+        self._rows[self.order - 8][8] = 0 if test else 1
 
     def _put_type_number(self, *, test: bool):
         bits = util.bch_type_number(self.version)
@@ -152,11 +157,11 @@ class Matrix:
 
         for i in range(18):
             mod = 0 if test else ((bits >> i) & 1)
-            self.rows[i // 3][i % 3 + order - 8 - 3] = mod
+            self._rows[i // 3][i % 3 + order - 8 - 3] = mod
 
         for i in range(18):
             mod = 0 if test else ((bits >> i) & 1)
-            self.rows[i % 3 + order - 8 - 3][i // 3] = mod
+            self._rows[i % 3 + order - 8 - 3][i // 3] = mod
 
     def _put_data(self, data: bytes, *, pattern: int):
         inc = -1
@@ -176,7 +181,7 @@ class Matrix:
 
             while True:
                 for c in col_range:
-                    if self.rows[row][c] is None:
+                    if self._rows[row][c] is None:
                         bit = 0
 
                         if byte_index < data_len:
@@ -185,7 +190,7 @@ class Matrix:
                         if mask_func(row, c):
                             bit = bit ^ 1
 
-                        self.rows[row][c] = bit
+                        self._rows[row][c] = bit
                         bit_index -= 1
 
                         if bit_index == -1:
@@ -201,48 +206,24 @@ class Matrix:
 
     def as_matrix(self, border=4):
         if not border:
-            return self.rows
+            return self._rows
 
-        width = len(self.rows) + border * 2
+        width = len(self._rows) + border * 2
         x_border = [0] * border
 
         code = [[0] * width] * border
-        for row in self.rows:
+        for row in self._rows:
             code.append(x_border + cast(list[int], row) + x_border)
         code += [[0] * width] * border
 
         return code
 
-    def print_ascii(self, out: TextIO, *, invert=False, border: int = 4):
-        """
-        Output the QR Code using ASCII characters.
-
-        :param tty: use fixed TTY color codes (forces invert=True)
-        :param invert: invert the ASCII characters (solid <-> transparent)
-        """
-
-        order = self.order
-        codes = "\u00A0\u2580\u2584\u2588"
-
-        if invert:
-            codes = codes[::-1]
-
-        def get_module(x, y) -> int:
-            if invert and border and max(x, y) >= order + border:
-                return 1
-            if min(x, y) < 0 or max(x, y) >= order:
-                return 0
-            return bool(self.rows[x][y])
-
-        for r in range(-border, order + border, 2):
-            for c in range(-border, order + border):
-                pos = get_module(r, c) + (get_module(r + 1, c) << 1)
-                out.write(codes[pos])
-            out.write("\n")
-        out.flush()
-
     def as_strings(self):
-        return ["".join(str(m) for m in row) for row in self.rows]
+        return ["".join(str(m) for m in row) for row in self._rows]
+
+    @property
+    def rows(self):
+        return cast(list[list[int]], self._rows)
 
     @classmethod
     def blank(cls, version: int):
@@ -317,3 +298,6 @@ def qrcode(
         correction=error_correction,
         cache=blanks_cache,
     )
+
+
+BlanksCache = dict[int, Matrix]

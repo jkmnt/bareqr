@@ -220,7 +220,7 @@ def get_lost_point(matrix: Matrix):
 def _lost_point_level1(matrix: Matrix):
     lost_point = 0
 
-    rows = matrix.rows
+    rows = matrix._rows
     rows_count = matrix.order
 
     rows_range = range(rows_count)
@@ -262,7 +262,7 @@ def _lost_point_level1(matrix: Matrix):
 
 def _lost_point_level2(matrix: Matrix):
 
-    rows = matrix.rows
+    rows = matrix._rows
     rows_count = matrix.order
     rows_range = range(rows_count - 1)
 
@@ -297,7 +297,7 @@ def _lost_point_level3(matrix: Matrix):
     # pattern1:     10111010000
     # pattern2: 00001011101
 
-    rows = matrix.rows
+    rows = matrix._rows
     rows_count = matrix.order
 
     rows_range = range(rows_count)
@@ -373,7 +373,7 @@ def _lost_point_level3(matrix: Matrix):
 
 
 def _lost_point_level4(matrix: Matrix):
-    rows = matrix.rows
+    rows = matrix._rows
     rows_count = matrix.order
 
     dark_count = sum(module for row in rows for module in row if module)
