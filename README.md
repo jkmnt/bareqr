@@ -1,6 +1,6 @@
 # bareqr - Bare headless QR code generator
 
-**bareqr** was derived from [python-qrcode](https://github.com/lincolnloop/python-qrcode). I removed all dependencies, console scripts, renderers
+**bareqr** was derived from [python-qrcode](https://github.com/lincolnloop/python-qrcode). I removed all dependencies, console scripts, renderers,
 and made it headless.
 
 **bareqr** is:
@@ -49,7 +49,7 @@ chunks = optimal_chunks("1234HELLOworld", min_chunk=4)
 qr = qrcode(*chunks)
 ```
 
-`qrcode` have an internal global cache of precomputed blank QR codes.
+`qrcode` has an internal global cache of precomputed blank QR codes.
 In **bareqr** this cache is external and opt-in:
 
 ```python
@@ -60,7 +60,7 @@ qr2 = qrcode("5678", blanks_cache=cache)
 
 ## Extra features
 
-Ok, **bareqr** is not completely headless after all.
+Ok, in fact **bareqr** is not completely headless.
 There are two utils to render QR as ascii or png. Treat them as handy extras.
 
 ```python
@@ -71,7 +71,7 @@ asc = as_ascii(qr, border=2, invert=True)
 for row in asc:
     print(row)
 
-png = as_png(qr, border=2, scale=16, module_size=16)
+png = as_png(qr, border=2, module_size=16)
 with open("qr.png", "wb") as f:
     f.write(png)
 
