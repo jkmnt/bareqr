@@ -16,11 +16,11 @@ def transform(matrix: Matrix, *, border: int, scale=1, colors: tuple[int, int] |
     if not colors:
         colors = (0, 1)
 
-    bg = colors[0]
+    bg = [colors[0]]
 
     width = matrix.order * scale + border * 2
-    v_border = [bg] * border
-    h_borders = [[bg] * width] * border
+    v_border = bg * border
+    h_borders = [bg * width] * border
 
     out: list[list[int]] = []
 
@@ -41,18 +41,20 @@ def transform(matrix: Matrix, *, border: int, scale=1, colors: tuple[int, int] |
 def as_ascii(matrix: Matrix, *, invert=False, border=0, scale=1):
 
     codes: dict[tuple[int, ...], str] = {
-        (0,): "\u00A0",
         (0, 0): "\u00A0",
         (0, 1): "\u2584",
         (1, 0): "\u2580",
         (1, 1): "\u2588",
-        (1,): "\u2588",
+        (0,): "\u00A0",
+        (1,): "\u2580",
     }
 
-    rows = transform(matrix, border=border, colors=(0, 1) if not invert else (1, 0), scale=scale)
+    rows = transform(matrix, border=border, colors=(1, 0) if invert else (0, 1), scale=scale)
 
+    out: list[str] = []
     for row_pair in chunked(rows, 2):
-        yield "".join(codes[mod_pair] for mod_pair in zip(*row_pair, strict=False))
+        out.append("".join(codes[mod_pair] for mod_pair in zip(*row_pair, strict=False)))
+    return out
 
 
 def _png_block(name: bytes, data: bytes):
@@ -60,11 +62,11 @@ def _png_block(name: bytes, data: bytes):
     return [len(data).to_bytes(4), content, zlib.crc32(content).to_bytes(4)]
 
 
-def as_png(matrix: Matrix, *, invert=False, border: int | None = None, module_size=4):
+def as_png(matrix: Matrix, *, invert=False, border: int | None = None, scale=4):
 
     pixels = bytearray()
 
-    rows = transform(matrix, border=border or 0, scale=module_size, colors=(0, 255) if invert else (255, 0))
+    rows = transform(matrix, border=border or 0, scale=scale, colors=(0, 255) if invert else (255, 0))
 
     for row in rows:
         pixels.append(0)

@@ -8,9 +8,9 @@ import qrcode.util
 from qrcode import ERROR_CORRECT_H, ERROR_CORRECT_L, ERROR_CORRECT_M, ERROR_CORRECT_Q, QRCode
 
 import bareqr
+from bareqr.extra import as_ascii
 from bareqr.mask import MASK0, MASK1, MASK2, MASK3, MASK4, MASK5, MASK6, MASK7, Mask
 from bareqr.qr import CorrectionType, Matrix
-from bareqr.util import as_ascii
 
 
 def to_bare(qr: QRCode):

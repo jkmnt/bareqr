@@ -6,7 +6,7 @@ from typing import Final, cast
 from .corr import Corr, CorrM
 from .data import BitBuffer, DataOverflowError, QRData, create_data, make_qrdata
 from .mask import Mask, choose_mask_pattern
-from .util import bch_type_info, bch_type_number, get_adjust_pattern
+from .util import bch_type_info, bch_type_number, get_adjust_pattern_pos
 
 CorrectionType = type[Corr]
 
@@ -78,7 +78,7 @@ class Matrix:
         self._put_probe_pattern(0, self.order - 7)
 
     def _put_adjust_pattern(self):
-        pos = get_adjust_pattern(self.version)
+        pos = get_adjust_pattern_pos(self.version)
 
         for row in pos:
             for col in pos:

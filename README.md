@@ -71,7 +71,7 @@ asc = as_ascii(qr, border=2, invert=True)
 for row in asc:
     print(row)
 
-png = as_png(qr, border=2, module_size=16)
+png = as_png(qr, border=2, scale=4)
 with open("qr.png", "wb") as f:
     f.write(png)
 

@@ -93,7 +93,5 @@ def bch_digit(data: int):
     return digit
 
 
-def get_adjust_pattern(version: int):
+def get_adjust_pattern_pos(version: int):
     return ADJUST_POSITION_BY_VERSION[version - 1]
-
-
