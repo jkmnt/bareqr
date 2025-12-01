@@ -23,7 +23,10 @@ jobs:
                   cache: "pip"
 
             - name: Install deps
-              run: pip install pytest qrcode
+              run: pip install pytest flit
+
+            - name: Install us
+              run: pip install .
 
             - name: Test
               run: pytest
