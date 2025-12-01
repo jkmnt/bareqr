@@ -1,0 +1,29 @@
+name: Test against qrcode
+
+"on":
+    push:
+        branches:
+            - "main"
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+jobs:
+    test:
+        timeout-minutes: 5
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/setup-python@v4
+              with:
+                  python-version: "3.12"
+                  cache: "pip"
+
+            - name: Install deps
+              run: pip install pytest qrcode
+
+            - name: Test
+              run: pytest
