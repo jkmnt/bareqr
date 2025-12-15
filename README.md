@@ -10,6 +10,12 @@ and made it headless.
 -   PEP-8 compliant
 -   fully typed
 
+## Installation
+
+```shell
+pip install bareqr
+```
+
 ## Main features
 
 There is just one feature: produce the matrix.
