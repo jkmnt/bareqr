@@ -19,6 +19,8 @@ dynamic = ["version", "description"]
 Documentation = "https://jkmnt.github.com/bareqr"
 Source = "https://github.com/jkmnt/bareqr"
 
+[tool.flit.sdist]
+exclude = ["tests/", ".github"]
 
 [tool.ruff]
 line-length = 120
